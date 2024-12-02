@@ -168,7 +168,6 @@ const getTouristEntities = async (req, res) => {
   }
 };
 
-
 export default {
   getTouristEntities,
   getAllFilters,

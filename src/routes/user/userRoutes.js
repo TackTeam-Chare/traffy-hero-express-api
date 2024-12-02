@@ -1,15 +1,8 @@
 import express from 'express';
 import TouristEntityController from '../../controllers/user/PlacesController.js';
 import SearchPlaces from '../../controllers/user/SearchPlaces.js';
-import SeasonEntityController from '../../controllers/user/SeasonEntityController.js';
-import DistrictEntityController from '../../controllers/user/DistrictEntityController.js';
-import CategoryEntityController from '../../controllers/user/CategoryEntityController.js';
-import ChatbotSuggestionsController from '../../controllers/user/ChatbotSuggestionsController.js'; 
+
 const router = express.Router();
-
-
-
-router.get('/suggestions', ChatbotSuggestionsController.getSuggestions);
 router.get('/filters', SearchPlaces.getAllFilters); // Route to fetch all filters (seasons, districts, categories)
 
 router.get('/search', SearchPlaces.getTouristEntities); // Unified search route for all criteria
@@ -26,9 +19,6 @@ router.get('/seasons/:id/place', TouristEntityController.getTouristEntitiesBySea
 router.get('/districts/:id/place', TouristEntityController.getTouristEntitiesByDistrict); //ดึงสถานที่ทุกประเภทตามอำเภอ
 router.get('/categories/:id/place', TouristEntityController.getTouristEntitiesByCategory); // ดึงสถานที่ทุกประเภทตามหมวดหมู่
 
-router.get('/seasons', SeasonEntityController.getAllSeasons); // ดึงชื่อฤดูกาล
-router.get('/districts', DistrictEntityController.getAllDistricts); // ดึงชื่ออำเภอ
-router.get('/categories', CategoryEntityController.getAllCategories); // ดึงชื่อประเภทสถานที่
 
 router.get('/tourist-attractions/:district_id', TouristEntityController.getTouristAttractionsByDistrict); // ดึงสถานที่ท่องเที่ยวเฉพาะในอำเภอที่เลือก
 router.get('/accommodations/:district_id', TouristEntityController.getAccommodationsByDistrict); // ดึงที่พักเฉพาะในอำเภอที่เลือก

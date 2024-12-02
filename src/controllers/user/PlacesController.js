@@ -877,11 +877,11 @@ const getNearbyPlacesByCoordinates = async (req, res) => {
     try {
         const { lat, lng, radius = 5000 } = req.query;
 
-        // ตรวจสอบว่าพิกัดที่ส่งมาถูกต้องหรือไม่ (ต้องไม่เป็น undefined หรือ null)
-        if (!lat || !lng) {
+        if (!lat || !lng || isNaN(Number(lat)) || isNaN(Number(lng))) {
             return res.status(400).json({ error: "Invalid coordinates" });
-        }
-
+          }
+          
+        
         // ตรวจสอบว่า radius เป็นตัวเลขที่ถูกต้องหรือไม่
         let radiusValue = parseInt(radius, 10);
         if (isNaN(radiusValue) || radiusValue <= 0) {

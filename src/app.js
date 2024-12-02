@@ -5,11 +5,6 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import userRoutes from './routes/user/userRoutes.js';
-import adminRoutes from './routes/auth/adminRoutes.js';
-import generalRoutes from './routes/auth/general/generalRoutes.js';
-import authRoutes from './routes/auth/authRoutes.js';
-import authenticateJWT from './middleware/authMiddleware.js';
-import processChatbotQuestion from './services/chatbotService.js';
 import { Server } from 'socket.io';
 import http from 'http';
 
@@ -108,14 +103,6 @@ console.log('Serving static files from /uploads');
 
 // User Routes
 app.use('/', userRoutes);
-
-// Auth Routes
-app.use('/auth', authRoutes);
-
-// Admin Routes (with JWT authentication)
-app.use('/admin', authenticateJWT, adminRoutes);
-
-app.use('/admin/general', authenticateJWT, generalRoutes);
 
 // Catch all route errors
 app.use((err, req, res, next) => {
