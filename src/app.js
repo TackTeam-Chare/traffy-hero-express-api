@@ -5,7 +5,6 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import userRoutes from './routes/user/userRoutes.js';
-import { Server } from 'socket.io';
 import http from 'http';
 
 dotenv.config();
@@ -55,45 +54,6 @@ const __dirname = path.dirname(__filename);
 
 console.log('__filename:', __filename);
 console.log('__dirname:', __dirname);
-
-// CORS configuration for WebSocket (Socket.IO)
-export const io = new Server(server, {
-  cors: {
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    credentials: true,
-    allowedHeaders: ['Content-Type', 'Authorization']
-  }
-});
-
-// WebSocket error handler
-io.on('error', (error) => {
-  console.error('WebSocket error:', error);
-});
-
-io.on('connection', (socket) => {
-  console.log('User connected:', socket.id);
-
-  socket.on('userMessage', async (message) => {
-    console.log('Received message from user:', message);
-    try {
-      await processChatbotQuestion(message, socket);
-    } catch (error) {
-      console.error('Error processing chatbot request:', error);
-      socket.emit('botMessage', 'An error occurred while processing the bot response.');
-    }
-  });
-
-  socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.id);
-  });
-});
 
 // Serve static files
 app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
