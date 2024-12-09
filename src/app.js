@@ -2,8 +2,6 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import userRoutes from './routes/user/userRoutes.js';
 import http from 'http';
 
@@ -15,7 +13,7 @@ const PORT = process.env.PORT || 5000;
 // Get allowed origins from environment or use a default list
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',')
-  : ['http://localhost:3000', 'https://your-frontend-domain.com'];
+  : ['http://localhost:3000', 'https://traffy-fondue.vercel.app/'];
 
 console.log('Initializing server...');
 console.log('Allowed Origins:', allowedOrigins);
@@ -44,16 +42,7 @@ app.options('*', cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Resolve __dirname for ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
-console.log('__filename:', __filename);
-console.log('__dirname:', __dirname);
-
-// Serve Static Files
-app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
-console.log('Serving static files from /uploads');
 
 // User Routes
 app.use('/', userRoutes);
