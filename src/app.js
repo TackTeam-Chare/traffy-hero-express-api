@@ -2,8 +2,6 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import userRoutes from './routes/user/userRoutes.js';
 import http from 'http';
 
@@ -12,75 +10,69 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Get allowed origins from environment or use a default list
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',')
+  : [
+      'http://localhost:3000',
+      'https://traffy-fondue.vercel.app',
+      'https://traffy-fondue-git-main-tackteam-chares-projects.vercel.app',
+    ];
 
-
-const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : [];
-// Log the server start
 console.log('Initializing server...');
+console.log('Allowed Origins:', allowedOrigins);
 
-// Error handling middleware for Express
-app.use((err, req, res, next) => {
-  console.error('Error caught in middleware:', err);
-  res.status(500).json({ message: 'Internal server error', error: err.message });
-});
-
-// CORS configuration for HTTP requests
 app.use(
   cors({
     origin: (origin, callback) => {
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
+        console.error(`Blocked by CORS: ${origin}`);
         callback(new Error('Not allowed by CORS'));
       }
     },
-    methods: 'GET,POST,PUT,DELETE',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
 
-console.log(
-  'CORS configuration applied for: https://nakhon-phanom-travel-production.up.railway.app/ and localhost:3000'
-);
+// Handle Preflight Requests
+app.options('*', cors());
 
+// Body Parser Middleware
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-const server = http.createServer(app);
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-console.log('__filename:', __filename);
-console.log('__dirname:', __dirname);
-
-// Serve static files
-app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
-
-// Console log for static file path
-console.log('Serving static files from /uploads');
 
 // User Routes
 app.use('/', userRoutes);
 
-// Catch all route errors
+// Global Error-Handling Middleware
 app.use((err, req, res, next) => {
-  console.error('Route Error:', err);
-  res.status(500).json({ error: 'Internal server error' });
+  console.error('Error caught in middleware:', err);
+  res.status(500).json({
+    message: 'Internal server error',
+    error: err.message,
+  });
 });
 
-// Log when the server is running
+// HTTP Server
+const server = http.createServer(app);
+
+// Start Server
 server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
 
-// Handle unhandled promise rejections
+// Handle Unhandled Promise Rejections
 process.on('unhandledRejection', (reason, promise) => {
   console.error('Unhandled Rejection at:', promise, 'reason:', reason);
 });
 
-// Catch uncaught exceptions
+// Catch Uncaught Exceptions
 process.on('uncaughtException', (err) => {
   console.error('Uncaught Exception thrown:', err);
 });
