@@ -13,9 +13,11 @@ const PORT = process.env.PORT || 5000;
 // Get allowed origins from environment or use a default list
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',')
-  : ['http://localhost:3000', 'https://traffy-fondue.vercel.app/'];
-
-console.log('Initializing server...');
+  : [
+      'http://localhost:3000',
+      'https://traffy-fondue.vercel.app',
+      'https://traffy-fondue-git-main-tackteam-chares-projects.vercel.app',
+    ];
 console.log('Allowed Origins:', allowedOrigins);
 
 // CORS Configuration
