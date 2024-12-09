@@ -110,26 +110,28 @@ const getNearbyPlacesByCoordinates = async (req, res) => {
     }
   };
 
-const saveReview = async (req, res) => {
+  const saveReview = async (req, res) => {
     try {
-      const { placeId, reviewerName, reviewStatus, stars, comment, timestamp } = req.body;
+      const { placeId, userId, displayName, reviewStatus, stars, comment, timestamp } =
+        req.body;
   
-      // Validate input
-      if (!placeId || !reviewerName || !reviewStatus || stars == null || !comment) {
+      if (!placeId || !userId || !displayName || stars == null || !reviewStatus || !comment) {
         return res.status(400).json({ error: "Missing required fields" });
       }
   
       const query = `
-        INSERT INTO reviews (place_id, reviewer_name, review_status, stars, comment, timestamp)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO reviews (
+          place_id, user_id, display_name, review_status, stars, comment, timestamp
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)
       `;
   
       const [result] = await pool.query(query, [
         placeId,
-        reviewerName,
+        userId,
+        displayName,
         reviewStatus,
         stars,
-        comment, // Include comment in query
+        comment,
         timestamp,
       ]);
   
@@ -141,6 +143,7 @@ const saveReview = async (req, res) => {
   };
   
   
+
 export default {
     getNearbyPlacesByCoordinates,
     saveReview
