@@ -112,23 +112,24 @@ const getNearbyPlacesByCoordinates = async (req, res) => {
 
   const saveReview = async (req, res) => {
     try {
+      // Debug: Log request body
+      console.log("Request Body:", req.body);
+  
       const { placeId, userId, displayName, reviewStatus, stars, comment, timestamp } = req.body;
   
-      // Validate required fields
+      // ตรวจสอบข้อมูลที่จำเป็น
       if (!placeId || !userId || !displayName || stars == null || !reviewStatus || !comment) {
-        console.error("Missing required fields:", req.body);
-        return res.status(400).json({ error: "Missing required fields" });
+        return res.status(400).json({ error: "Missing required fields", data: req.body });
       }
   
-      // Use current timestamp if not provided
-      const reviewTimestamp = timestamp || new Date().toISOString();
-  
+      // SQL query สำหรับเพิ่มรีวิว
       const query = `
         INSERT INTO reviews (
           place_id, user_id, display_name, review_status, stars, comment, timestamp
         ) VALUES (?, ?, ?, ?, ?, ?, ?)
       `;
   
+      // รันคำสั่ง SQL
       const [result] = await pool.query(query, [
         placeId,
         userId,
@@ -136,15 +137,18 @@ const getNearbyPlacesByCoordinates = async (req, res) => {
         reviewStatus,
         stars,
         comment,
-        reviewTimestamp,
+        timestamp || new Date().toISOString(), // ใช้เวลาปัจจุบันถ้าไม่มี timestamp
       ]);
   
+      // ตอบกลับถ้าสำเร็จ
       res.status(200).json({ message: "Review saved successfully", reviewId: result.insertId });
     } catch (error) {
+      // Log ข้อผิดพลาดเพื่อ Debug
       console.error("Error saving review:", error.message);
       res.status(500).json({ error: "Internal server error" });
     }
   };
+  
   
   
   
