@@ -112,12 +112,16 @@ const getNearbyPlacesByCoordinates = async (req, res) => {
 
   const saveReview = async (req, res) => {
     try {
-      const { placeId, userId, displayName, reviewStatus, stars, comment, timestamp } =
-        req.body;
+      const { placeId, userId, displayName, reviewStatus, stars, comment, timestamp } = req.body;
   
+      // Validate required fields
       if (!placeId || !userId || !displayName || stars == null || !reviewStatus || !comment) {
+        console.error("Missing required fields:", req.body);
         return res.status(400).json({ error: "Missing required fields" });
       }
+  
+      // Use current timestamp if not provided
+      const reviewTimestamp = timestamp || new Date().toISOString();
   
       const query = `
         INSERT INTO reviews (
@@ -132,7 +136,7 @@ const getNearbyPlacesByCoordinates = async (req, res) => {
         reviewStatus,
         stars,
         comment,
-        timestamp,
+        reviewTimestamp,
       ]);
   
       res.status(200).json({ message: "Review saved successfully", reviewId: result.insertId });
@@ -141,6 +145,7 @@ const getNearbyPlacesByCoordinates = async (req, res) => {
       res.status(500).json({ error: "Internal server error" });
     }
   };
+  
   
   
 

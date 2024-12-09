@@ -3,7 +3,6 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import userRoutes from './routes/user/userRoutes.js';
-import axios from 'axios'; // To handle HTTP requests
 import http from 'http';
 
 dotenv.config();
@@ -11,7 +10,7 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Allowed origins for CORS
+// Get allowed origins from environment or use a default list
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',')
   : [
@@ -46,46 +45,7 @@ app.options('*', cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Route to handle LINE Login callback
-app.get('/line/callback', async (req, res) => {
-  const { code, state } = req.query;
-  if (!code) {
-    return res.status(400).json({ error: 'Authorization code is missing' });
-  }
 
-  try {
-    // Exchange code for access token
-    const tokenResponse = await axios.post('https://api.line.me/oauth2/v2.1/token', null, {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      params: {
-        grant_type: 'authorization_code',
-        code: code,
-        redirect_uri: process.env.LINE_CALLBACK_URL, // Set this in your .env file
-        client_id: process.env.LINE_CLIENT_ID, // LINE Channel ID
-        client_secret: process.env.LINE_CLIENT_SECRET, // LINE Channel Secret
-      },
-    });
-
-    const { access_token, id_token } = tokenResponse.data;
-
-    // Decode ID Token to get user profile
-    const userInfo = await axios.get('https://api.line.me/v2/profile', {
-      headers: {
-        Authorization: `Bearer ${access_token}`,
-      },
-    });
-
-    res.status(200).json({
-      message: 'LINE Login successful',
-      profile: userInfo.data,
-    });
-  } catch (error) {
-    console.error('Error during LINE Login callback:', error.response?.data || error.message);
-    res.status(500).json({ error: 'Failed to handle LINE Login callback' });
-  }
-});
 
 // User Routes
 app.use('/', userRoutes);
