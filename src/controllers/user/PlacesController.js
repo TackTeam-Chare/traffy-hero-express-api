@@ -77,7 +77,6 @@ const getNearbyPlacesByCoordinates = async (req, res) => {
           distance < ?
         ORDER BY 
           distance
-        LIMIT 500;
       `;
 
     // Fetch places within the radius
