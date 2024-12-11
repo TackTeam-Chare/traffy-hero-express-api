@@ -16,6 +16,7 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
   : [
       'http://localhost:3000',
       'https://traffy-fondue.vercel.app',
+      'https://ed9a-122-155-95-12.ngrok-free.app',
       'https://traffy-fondue-git-main-tackteam-chares-projects.vercel.app',
     ];
 
