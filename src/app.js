@@ -48,7 +48,11 @@ app.use(bodyParser.urlencoded({
   extended: true
 }));
 
-
+// Middleware to log requests to the root path
+app.use('/', (req, res, next) => {
+  console.log(`Path: ${req.path}, Method: ${req.method}, Time: ${new Date().toISOString()}`);
+  next(); // Pass control to the next middleware or route
+});
 
 // User Routes
 app.use('/', userRoutes);
