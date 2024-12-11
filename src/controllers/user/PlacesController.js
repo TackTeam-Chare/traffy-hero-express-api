@@ -5,7 +5,7 @@ const getNearbyPlacesByCoordinates = async (req, res) => {
     const {
       lat,
       lng,
-      radius = 500
+      radius = 30000
     } = req.query;
 
     // Validate coordinates
@@ -27,7 +27,7 @@ const getNearbyPlacesByCoordinates = async (req, res) => {
     // Ensure radius is a valid number
     let radiusValue = parseInt(radius, 10);
     if (isNaN(radiusValue) || radiusValue <= 0) {
-      radiusValue = 500; // Default radius to 5000 meters
+      radiusValue = 30000; // Default radius to 5000 meters
     }
 
     console.log(
