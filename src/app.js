@@ -11,14 +11,14 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Get allowed origins from environment or use a default list
-const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(',')
-  : [
-      'http://localhost:3000',
-      'https://traffy-fondue.vercel.app',
-      'https://ed9a-122-155-95-12.ngrok-free.app',
-      'https://traffy-fondue-git-main-tackteam-chares-projects.vercel.app',
-    ];
+const allowedOrigins = process.env.ALLOWED_ORIGINS ?
+  process.env.ALLOWED_ORIGINS.split(',') :
+  [
+    'http://localhost:3000',
+    'https://traffy-fondue.vercel.app',
+    'https://ed9a-122-155-95-12.ngrok-free.app',
+    'https://traffy-fondue-git-main-tackteam-chares-projects.vercel.app'
+  ];
 
 console.log('Initializing server...');
 console.log('Allowed Origins:', allowedOrigins);
@@ -44,7 +44,9 @@ app.options('*', cors());
 
 // Body Parser Middleware
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({
+  extended: true
+}));
 
 
 
