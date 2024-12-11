@@ -2,7 +2,7 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import userRoutes from '../src/routes/user/userRoutes.js';
+import userRoutes from './routes/user/userRoutes.js';
 import http from 'http';
 
 dotenv.config();
