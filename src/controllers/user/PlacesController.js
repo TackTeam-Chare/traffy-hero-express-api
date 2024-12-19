@@ -107,11 +107,35 @@ const getNearbyPlacesByCoordinates = async (req, res) => {
             WHERE place_id = ?
           `;
           const [reviewSummary] = await pool.query(reviewSummaryQuery, [place.id]);
-  
+          
+          const agreeCommentsQuery = `
+          SELECT comment, display_name, timestamp 
+          FROM reviews 
+          WHERE place_id = ? AND review_status = 'pass'
+        `;
+
+        const disagreeCommentsQuery = `
+          SELECT comment, display_name, timestamp 
+          FROM reviews 
+          WHERE place_id = ? AND review_status = 'fail'
+        `;
+
+        const [agreeComments] = await pool.query(agreeCommentsQuery, [place.id]);
+        const [disagreeComments] = await pool.query(disagreeCommentsQuery, [place.id]);
           return {
             ...place,
             investigators: investigators.map((inv) => inv.display_name),
             reviewSummary: reviewSummary[0],
+            agreeComments: agreeComments.map((row) => ({
+              text: row.comment,
+              user: row.display_name,
+              timestamp: row.timestamp,
+            })),
+            disagreeComments: disagreeComments.map((row) => ({
+              text: row.comment,
+              user: row.display_name,
+              timestamp: row.timestamp,
+            })),
           };
         })
       );

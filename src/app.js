@@ -4,9 +4,8 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import userRoutes from './routes/user/userRoutes.js';
 import http from 'http';
-
-import path from 'path';
-import { fileURLToPath } from 'url';
+import path from "path";
+import { fileURLToPath } from "url";
 
 
 
@@ -54,7 +53,7 @@ console.log('__filename:', __filename);
 console.log('__dirname:', __dirname);
 
 // Serve static files
-app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Middleware to log requests to the root path
 app.use('/', (req, res, next) => {
