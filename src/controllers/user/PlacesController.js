@@ -129,31 +129,17 @@ const getNearbyPlacesByCoordinates = async (req, res) => {
 
 const saveReview = async (req, res) => {
   try {
-    const {
-      placeId,
-      userId,
-      displayName,
-      reviewStatus,
-      stars,
-      comment,
-      timestamp
-    } = req.body;
+    const { placeId, userId, displayName, reviewStatus, stars, comment } = req.body;
+    const image = req.file ? `/uploads/${req.file.filename}` : null;
 
-    if (!placeId || !userId || !displayName || stars == null || !reviewStatus ||  stars == null ) {
-      return res.status(400).json({
-        error: "Missing required fields"
-      });
+    if (!placeId || !userId || !displayName) {
+      return res.status(400).json({ error: "Missing required fields" });
     }
 
-    // Format the timestamp to match MySQL DATETIME format (YYYY-MM-DD HH:MM:SS)
-    const formattedTimestamp = new Date(timestamp).toISOString().slice(0, 19).replace('T', ' ');
-
     const query = `
-        INSERT INTO reviews (
-          place_id, user_id, display_name, review_status, stars, comment, timestamp
-        ) VALUES (?, ?, ?, ?, ?, ?, ?)
-      `;
-
+      INSERT INTO reviews (place_id, user_id, display_name, review_status, stars, comment, image)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `;
     const [result] = await pool.query(query, [
       placeId,
       userId,
@@ -161,18 +147,13 @@ const saveReview = async (req, res) => {
       reviewStatus,
       stars,
       comment,
-      formattedTimestamp,
+      image,
     ]);
 
-    res.status(200).json({
-      message: "Review saved successfully",
-      reviewId: result.insertId
-    });
+    res.status(200).json({ message: "Review saved successfully", reviewId: result.insertId });
   } catch (error) {
     console.error("Error saving review:", error.message);
-    res.status(500).json({
-      error: "Internal server error"
-    });
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 

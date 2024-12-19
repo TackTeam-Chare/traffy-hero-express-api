@@ -5,20 +5,19 @@ import dotenv from 'dotenv';
 import userRoutes from './routes/user/userRoutes.js';
 import http from 'http';
 
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+
+
+
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Get allowed origins from environment or use a default list
-const allowedOrigins = process.env.ALLOWED_ORIGINS ?
-  process.env.ALLOWED_ORIGINS.split(',') :
-  [
-    'http://localhost:3000',
-    'https://traffy-fondue.vercel.app',
-    'https://ed9a-122-155-95-12.ngrok-free.app',
-    'https://traffy-fondue-git-main-tackteam-chares-projects.vercel.app'
-  ];
+const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : [];
 
 console.log('Initializing server...');
 console.log('Allowed Origins:', allowedOrigins);
@@ -47,6 +46,15 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
   extended: true
 }));
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+console.log('__filename:', __filename);
+console.log('__dirname:', __dirname);
+
+// Serve static files
+app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
 
 // Middleware to log requests to the root path
 app.use('/', (req, res, next) => {
