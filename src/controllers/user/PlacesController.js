@@ -154,7 +154,7 @@ const getNearbyPlacesByCoordinates = async (req, res) => {
 const saveReview = async (req, res) => {
   try {
     const { placeId, userId, displayName, reviewStatus, stars, comment } = req.body;
-    const image = req.file ? `/uploads/${req.file.filename}` : null;
+    const imagePaths = req.files.map((file) => `/uploads/${file.filename}`);
 
     if (!placeId || !userId || !displayName) {
       return res.status(400).json({ error: "Missing required fields" });
@@ -171,7 +171,7 @@ const saveReview = async (req, res) => {
       reviewStatus,
       stars,
       comment,
-      image,
+      JSON.stringify(imagePaths), // Store images as JSON array
     ]);
 
     res.status(200).json({ message: "Review saved successfully", reviewId: result.insertId });
@@ -180,6 +180,7 @@ const saveReview = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
 
 export default {
   getNearbyPlacesByCoordinates,
