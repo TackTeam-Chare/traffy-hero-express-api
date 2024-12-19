@@ -12,7 +12,9 @@ const getNearbyPlacesByCoordinates = async (req, res) => {
     if (
       !lat ||
       !lng ||
+      // biome-ignore lint/suspicious/noGlobalIsNan: <explanation>
       isNaN(Number(lat)) ||
+      // biome-ignore lint/suspicious/noGlobalIsNan: <explanation>
       isNaN(Number(lng)) ||
       lat < -90 ||
       lat > 90 ||
@@ -25,7 +27,8 @@ const getNearbyPlacesByCoordinates = async (req, res) => {
     }
 
     // Ensure radius is a valid number
-    let radiusValue = parseInt(radius, 10);
+    let radiusValue = Number.parseInt(radius, 10);
+    // biome-ignore lint/suspicious/noGlobalIsNan: <explanation>
     if (isNaN(radiusValue) || radiusValue <= 0) {
       radiusValue = 30000; // Default radius to 5000 meters
     }
@@ -82,10 +85,19 @@ const getNearbyPlacesByCoordinates = async (req, res) => {
     // Fetch places within the radius
     const [places] = await pool.query(query, [lng, lat, radiusValue]);
 
-    // Fetch review summaries for each place
-    const enhancedPlaces = await Promise.all(
-      places.map(async (place) => {
-        const reviewQuery = `
+      // Enhance places with investigators and review summaries
+      const enhancedPlaces = await Promise.all(
+        places.map(async (place) => {
+          // Fetch investigators
+          const investigatorsQuery = `
+            SELECT display_name 
+            FROM reviews 
+            WHERE place_id = ?
+          `;
+          const [investigators] = await pool.query(investigatorsQuery, [place.id]);
+  
+          // Fetch review summaries
+          const reviewSummaryQuery = `
             SELECT 
               COUNT(*) AS total_reviews,
               SUM(CASE WHEN review_status = 'pass' THEN 1 ELSE 0 END) AS pass_count,
@@ -94,19 +106,18 @@ const getNearbyPlacesByCoordinates = async (req, res) => {
             FROM reviews
             WHERE place_id = ?
           `;
-
-        const [reviewSummary] = await pool.query(reviewQuery, [place.id]);
-
-        // Add review summary to the place data
-        return {
-          ...place,
-          reviewSummary: reviewSummary[0], // Pass, fail, average stars
-        };
-      })
-    );
-
-    console.log(`Fetched ${enhancedPlaces.length} places with review summaries.`);
-    res.json(enhancedPlaces);
+          const [reviewSummary] = await pool.query(reviewSummaryQuery, [place.id]);
+  
+          return {
+            ...place,
+            investigators: investigators.map((inv) => inv.display_name),
+            reviewSummary: reviewSummary[0],
+          };
+        })
+      );
+  
+      console.log(`Fetched ${enhancedPlaces.length} places with investigators and review summaries.`);
+      res.json(enhancedPlaces);
   } catch (error) {
     console.error("Error fetching nearby places by coordinates:", error.message);
     res.status(500).json({

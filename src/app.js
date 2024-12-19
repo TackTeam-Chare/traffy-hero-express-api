@@ -41,7 +41,6 @@ app.use(
 
 // Handle Preflight Requests
 app.options('*', cors());
-app.use(cors());
 
 // Body Parser Middleware
 app.use(bodyParser.json());

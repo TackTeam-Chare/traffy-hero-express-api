@@ -1,19 +1,23 @@
+# Use the latest stable Node.js version as the base image
+FROM node:22-alpine
 
-FROM node:18-alpine
+# Set the working directory in the container
+WORKDIR /app
 
-WORKDIR /usr/src/app
+# Copy package files to the container
+COPY package.json package-lock.json ./
 
+# Install dependencies
+RUN npm install --production
 
-COPY package*.json ./
-
-
-RUN npm install
-
-
+# Copy the rest of the application source code
 COPY . .
 
+# Expose the port for the Express.js application
+EXPOSE 5000
 
-EXPOSE 4000
+# Set the environment variables for production
+ENV NODE_ENV=production
 
-
-CMD ["npm", "run", "dev"]
+# Start the Express.js server
+CMD ["node", "src/app.js"]
