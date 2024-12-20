@@ -221,9 +221,53 @@ const saveReview = async (req, res) => {
 };
 
 
+const getUserReviewHistory = async (req, res) => {
+  try {
+    const { userId } = req.query;
+
+    if (!userId) {
+      return res.status(400).json({ error: "Missing userId parameter" });
+    }
+
+    const query = `
+      SELECT 
+        reviews.id AS review_id,
+        reviews.place_id,
+        reviews.display_name,
+        reviews.review_status,
+        reviews.stars,
+        reviews.comment,
+        reviews.image,
+        reviews.timestamp,
+        traffy_data.ticket_id,
+        traffy_data.type,
+        traffy_data.organization,
+        traffy_data.address
+      FROM 
+        reviews
+      INNER JOIN 
+        traffy_data
+      ON 
+        reviews.place_id = traffy_data.id
+      WHERE 
+        reviews.user_id = ?
+      ORDER BY 
+        reviews.timestamp DESC
+    `;
+
+    const [results] = await pool.query(query, [userId]);
+
+    res.status(200).json(results);
+  } catch (error) {
+    console.error("Error fetching user review history:", error);
+    res.status(500).json({ error: "Internal server error", details: error.message });
+  }
+};
+
 
 
 export default {
   getNearbyPlacesByCoordinates,
-  saveReview
+  saveReview,
+  getUserReviewHistory
 };
