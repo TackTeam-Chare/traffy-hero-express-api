@@ -237,7 +237,6 @@ const getUserReviewHistory = async (req, res) => {
         reviews.review_status,
         reviews.stars,
         reviews.comment,
-        reviews.image,
         reviews.timestamp,
         traffy_data.ticket_id,
         traffy_data.type,
