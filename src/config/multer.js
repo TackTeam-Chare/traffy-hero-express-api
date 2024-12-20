@@ -1,15 +1,24 @@
-import multer from 'multer'; // For file uploads
-import path from 'path'; // For handling paths
-import { fileURLToPath } from 'url'; // To resolve file paths in ES modules
-import sharp from 'sharp'; // For image processing
-import fs from 'fs/promises'; // For file system operations
+import multer from 'multer'; // นำเข้าโมดูล `multer` เพื่อใช้จัดการการอัปโหลดไฟล์
+import path from 'path'; // นำเข้าโมดูล `path` เพื่อใช้จัดการเส้นทางไฟล์ (Path handling)
+import {
+  fileURLToPath
+} from 'url'; // นำเข้า `fileURLToPath` จาก `url` เพื่อแปลง URL เป็นเส้นทางไฟล์ (file path)
 
-// Derive __filename and __dirname
+// แปลง URL ของไฟล์ปัจจุบันเป็น path ของไฟล์
 const __filename = fileURLToPath(import.meta.url);
+
+// ดึง directory ของไฟล์ปัจจุบันจาก path ที่แปลงแล้ว
 const __dirname = path.dirname(__filename);
 
-// Multer storage configuration
-const storage = multer.memoryStorage(); // Store files in memory for processing with Sharp
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadPath = path.resolve(__dirname, '../../uploads'); // โฟลเดอร์สำหรับเก็บไฟล์
+    cb(null, uploadPath);
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${Date.now()}-${file.originalname}`);
+  },
+});
 
 const fileFilter = (req, file, cb) => {
   const allowedTypes = /jpeg|jpg|png/;
@@ -22,35 +31,19 @@ const fileFilter = (req, file, cb) => {
     cb(new Error('Only JPEG and PNG files are allowed!'));
   }
 };
-
-// Multer instance
 const upload = multer({
-  storage,
-  limits: { fileSize: 20 * 1024 * 1024 }, // Limit file size to 20MB
-  fileFilter,
+  storage: storage, // ใช้ตัวแปร storage ที่ตั้งค่าไว้
+  limits: { fileSize: 20 * 1024 * 1024 }, // กำหนดขนาดไฟล์สูงสุด 20MB
+  fileFilter: fileFilter // ใช้ฟังก์ชันกรองไฟล์
 });
 
-// Function to process and save images
-export const processAndSaveImage = async (buffer, originalName) => {
-  try {
-    const outputDir = path.resolve(__dirname, '../../uploads'); // Ensure absolute path
-    await fs.mkdir(outputDir, { recursive: true }); // Create uploads directory if it doesn't exist
+export default multer({
+  upload,
+  storage,
+  limits: { fileSize: 20 * 1024 * 1024 },
+  fileFilter,
 
-    const outputPath = path.join(outputDir, `${Date.now()}-${originalName}`);
-    console.log('Saving file to:', outputPath);
+});
 
-    // Process and save image with Sharp
-    await sharp(buffer)
-      .rotate() // Correct orientation based on EXIF data
-      .resize({ width: 800 }) // Resize image width to a maximum of 800px
-      .jpeg({ quality: 80 }) // Convert image to JPEG with 80% quality
-      .toFile(outputPath);
 
-    return `/uploads/${path.basename(outputPath)}`; // Return relative path for the saved file
-  } catch (error) {
-    console.error('Error processing and saving image:', error.message);
-    throw new Error('Failed to process and save image');
-  }
-};
 
-export default upload;
