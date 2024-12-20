@@ -159,7 +159,7 @@ const saveReview = async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    const imagePaths = req.files.map((file) => `/uploads/${file.filename}`); // เก็บ path ในฐานข้อมูล
+    const imagePaths = req.files ? req.files.map(file => file.filename) : []; // เก็บ path ในฐานข้อมูล
 
     const query = `
       INSERT INTO reviews (place_id, user_id, display_name, review_status, stars, comment, image)
