@@ -11,39 +11,35 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const storage = multer.diskStorage({
+  // กำหนดปลายทางที่ใช้เก็บไฟล์ที่อัปโหลด
   destination: (req, file, cb) => {
-    const uploadPath = path.resolve(__dirname, '../../uploads'); // โฟลเดอร์สำหรับเก็บไฟล์
-    cb(null, uploadPath);
+    const uploadPath = path.join(__dirname, '../../uploads'); // รวม path ไปยังโฟลเดอร์ปลายทาง
+    cb(null, uploadPath); // บอก multer ให้ใช้ path นี้ในการเก็บไฟล์
   },
+
+  // กำหนดชื่อไฟล์ที่บันทึกในโฟลเดอร์
   filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
-  },
+    cb(null, `${Date.now()}-${file.originalname}`); // ใช้ timestamp + ชื่อไฟล์เดิม เพื่อลดปัญหาชื่อซ้ำกัน
+  }
 });
 
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = /jpeg|jpg|png/;
-  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = allowedTypes.test(file.mimetype);
+  const allowedTypes = /jpeg|jpg|png|gif/; // ประเภทไฟล์ที่อนุญาต
+  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase()); // ตรวจสอบนามสกุลไฟล์
+  const mimetype = allowedTypes.test(file.mimetype); // ตรวจสอบ MIME type ของไฟล์
 
   if (extname && mimetype) {
-    cb(null, true);
+    cb(null, true); // ถ้าผ่านทั้งสองเงื่อนไข อนุญาตให้อัปโหลด
   } else {
-    cb(new Error('Only JPEG and PNG files are allowed!'));
+    cb(new Error('Only JPEG, JPG, PNG, and GIF files are allowed!')); // ถ้าไม่ผ่าน ส่ง error กลับ
   }
 };
+
 const upload = multer({
   storage: storage, // ใช้ตัวแปร storage ที่ตั้งค่าไว้
   limits: { fileSize: 20 * 1024 * 1024 }, // กำหนดขนาดไฟล์สูงสุด 20MB
   fileFilter: fileFilter // ใช้ฟังก์ชันกรองไฟล์
 });
 
-export default multer({
-  upload,
-  storage,
-  limits: { fileSize: 20 * 1024 * 1024 },
-  fileFilter,
 
-});
-
-
-
+export default upload;
