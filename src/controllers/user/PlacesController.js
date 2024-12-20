@@ -1,4 +1,6 @@
 import pool from '../../config/db.js';
+import { processAndSaveImage } from '../../config/multer.js';
+
 
 const getNearbyPlacesByCoordinates = async (req, res) => {
   try {
@@ -154,32 +156,71 @@ const getNearbyPlacesByCoordinates = async (req, res) => {
 const saveReview = async (req, res) => {
   try {
     const { placeId, userId, displayName, reviewStatus, stars, comment } = req.body;
-    const imagePaths = req.files.map((file) => `/uploads/${file.filename}`);
 
+    // Validate required fields
     if (!placeId || !userId || !displayName) {
-      return res.status(400).json({ error: "Missing required fields" });
+      console.error('Missing required fields:', { placeId, userId, displayName });
+      return res.status(400).json({ error: 'Missing required fields' });
     }
 
+    const imagePaths = [];
+
+    // Check and process uploaded images
+    if (req.files && req.files.length > 0) {
+      console.log('Received files:', req.files.map(file => file.originalname)); // Log file names
+
+      for (const file of req.files) {
+        if (!file.buffer) {
+          console.error('File buffer is missing for file:', file.originalname);
+          return res.status(400).json({ error: 'File buffer is missing' });
+        }
+
+        try {
+          const processedPath = await processAndSaveImage(file.buffer, file.originalname);
+          imagePaths.push(processedPath);
+          console.log(`Processed and saved image: ${file.originalname} -> ${processedPath}`);
+        } catch (imageError) {
+          console.error('Error processing image:', file.originalname, imageError.message);
+          return res.status(500).json({ error: 'Error processing one of the uploaded images', details: imageError.message });
+        }
+      }
+    } else {
+      console.log('No files uploaded.');
+    }
+
+    console.log('Processed image paths:', imagePaths);
+
+    // SQL query
     const query = `
       INSERT INTO reviews (place_id, user_id, display_name, review_status, stars, comment, image)
       VALUES (?, ?, ?, ?, ?, ?, ?)
     `;
-    const [result] = await pool.query(query, [
+
+    const queryParams = [
       placeId,
       userId,
       displayName,
       reviewStatus,
-      stars,
-      comment,
-      JSON.stringify(imagePaths), // Store images as JSON array
-    ]);
+      stars || 0, // Default to 0 if stars is missing
+      comment || '', // Default to an empty string if comment is missing
+      JSON.stringify(imagePaths), // Save image paths as JSON
+    ];
 
-    res.status(200).json({ message: "Review saved successfully", reviewId: result.insertId });
+    console.log('Executing SQL query with params:', queryParams);
+
+    // Execute the query
+    const [result] = await pool.query(query, queryParams);
+
+    console.log('SQL query executed successfully:', result);
+
+    res.status(200).json({ message: 'Review saved successfully', reviewId: result.insertId });
   } catch (error) {
-    console.error("Error saving review:", error.message);
-    res.status(500).json({ error: "Internal server error" });
+    console.error('Error saving review:', error);
+    res.status(500).json({ error: 'Internal server error', details: error.message });
   }
 };
+
+
 
 
 export default {
