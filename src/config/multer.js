@@ -1,56 +1,44 @@
-import multer from 'multer'; // For file uploads
-import path from 'path'; // For handling paths
-import { fileURLToPath } from 'url'; // To resolve file paths in ES modules
-import sharp from 'sharp'; // For image processing
-import fs from 'fs/promises'; // For file system operations
+import multer from 'multer'; // นำเข้าโมดูล `multer` เพื่อใช้จัดการการอัปโหลดไฟล์
+import path from 'path'; // นำเข้าโมดูล `path` เพื่อใช้จัดการเส้นทางไฟล์ (Path handling)
+import {
+  fileURLToPath
+} from 'url'; // นำเข้า `fileURLToPath` จาก `url` เพื่อแปลง URL เป็นเส้นทางไฟล์ (file path)
 
-// Derive __filename and __dirname
+// แปลง URL ของไฟล์ปัจจุบันเป็น path ของไฟล์
 const __filename = fileURLToPath(import.meta.url);
+
+// ดึง directory ของไฟล์ปัจจุบันจาก path ที่แปลงแล้ว
 const __dirname = path.dirname(__filename);
 
-// Multer storage configuration
-const storage = multer.memoryStorage(); // Store files in memory for processing with Sharp
+const storage = multer.diskStorage({
+  // กำหนดปลายทางที่ใช้เก็บไฟล์ที่อัปโหลด
+  destination: (req, file, cb) => {
+    const uploadPath = path.join(__dirname, '../../uploads'); // รวม path ไปยังโฟลเดอร์ปลายทาง
+    cb(null, uploadPath); // บอก multer ให้ใช้ path นี้ในการเก็บไฟล์
+  },
 
-const fileFilter = (req, file, cb) => {
-  const allowedTypes = /jpeg|jpg|png/;
-  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = allowedTypes.test(file.mimetype);
-
-  if (extname && mimetype) {
-    cb(null, true);
-  } else {
-    cb(new Error('Only JPEG and PNG files are allowed!'));
+  // กำหนดชื่อไฟล์ที่บันทึกในโฟลเดอร์
+  filename: (req, file, cb) => {
+    cb(null, `${Date.now()}-${file.originalname}`); // ใช้ timestamp + ชื่อไฟล์เดิม เพื่อลดปัญหาชื่อซ้ำกัน
   }
-};
-
-// Multer instance
-const upload = multer({
-  storage,
-  limits: { fileSize: 20 * 1024 * 1024 }, // Limit file size to 20MB
-  fileFilter,
 });
 
-// Function to process and save images
-export const processAndSaveImage = async (buffer, originalName) => {
-  try {
-    const outputDir = path.resolve(__dirname, '../../uploads'); // Ensure absolute path
-    await fs.mkdir(outputDir, { recursive: true }); // Create uploads directory if it doesn't exist
+const fileFilter = (req, file, cb) => {
+  const allowedTypes = /jpeg|jpg|png|gif/; // ประเภทไฟล์ที่อนุญาต
+  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase()); // ตรวจสอบนามสกุลไฟล์
+  const mimetype = allowedTypes.test(file.mimetype); // ตรวจสอบ MIME type ของไฟล์
 
-    const outputPath = path.join(outputDir, `${Date.now()}-${originalName}`);
-    console.log('Saving file to:', outputPath);
-
-    // Process and save image with Sharp
-    await sharp(buffer)
-      .rotate() // Correct orientation based on EXIF data
-      .resize({ width: 800 }) // Resize image width to a maximum of 800px
-      .jpeg({ quality: 80 }) // Convert image to JPEG with 80% quality
-      .toFile(outputPath);
-
-    return `/uploads/${path.basename(outputPath)}`; // Return relative path for the saved file
-  } catch (error) {
-    console.error('Error processing and saving image:', error.message);
-    throw new Error('Failed to process and save image');
+  if (extname && mimetype) {
+    cb(null, true); // ถ้าผ่านทั้งสองเงื่อนไข อนุญาตให้อัปโหลด
+  } else {
+    cb(new Error('Only JPEG, JPG, PNG, and GIF files are allowed!')); // ถ้าไม่ผ่าน ส่ง error กลับ
   }
 };
+
+const upload = multer({
+  storage: storage, // ใช้ตัวแปร storage ที่ตั้งค่าไว้
+  limits: { fileSize: 20 * 1024 * 1024 }, // กำหนดขนาดไฟล์สูงสุด 20MB
+  fileFilter: fileFilter // ใช้ฟังก์ชันกรองไฟล์
+});
 
 export default upload;

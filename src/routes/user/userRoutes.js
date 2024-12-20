@@ -9,5 +9,5 @@ router.post(
     upload.array("images", 10), // Accept up to 10 images
     TouristEntityController.saveReview
 );
-router.get('/user/review-history', TouristEntityController.getUserReviewHistory);
+
 export default router;
