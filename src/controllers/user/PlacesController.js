@@ -228,10 +228,103 @@ const getUserReviewHistory = async (req, res) => {
   }
 };
 
+const searchPlaces = async (req, res) => {
+  try {
+    const { searchTerm, caseType, notInvestigated, finishedDate, lat, lng, radius = 25000 } = req.query;
+
+    let query = `
+      SELECT 
+        id,
+        ticket_id,
+        type,
+        organization,
+        organization_action,
+        comment,
+        coords,
+        photo,
+        photo_after,
+        address,
+        state,
+        star,
+        timestamp,
+        timestamp_finished,
+        ST_Distance_Sphere(
+          point(
+            CAST(SUBSTRING_INDEX(coords, ',', 1) AS DECIMAL(10, 7)),
+            CAST(SUBSTRING_INDEX(coords, ',', -1) AS DECIMAL(10, 7))
+          ),
+          point(?, ?)
+        ) AS distance
+      FROM traffy_data
+      WHERE 1=1
+    `;
+
+    const queryParams = [lng, lat];
+
+    // 🔍 กรองตามคำค้นหา
+    if (searchTerm) {
+      // biome-ignore lint/style/noUnusedTemplateLiteral: <explanation>
+      query += ` AND (ticket_id LIKE ? OR comment LIKE ? OR organization LIKE ?)`;
+      queryParams.push(`%${searchTerm}%`, `%${searchTerm}%`, `%${searchTerm}%`);
+    }
+
+    // 🔍 กรองตามประเภท
+    if (caseType) {
+      // biome-ignore lint/style/noUnusedTemplateLiteral: <explanation>
+      query += ` AND type = ?`;
+      queryParams.push(caseType);
+    }
+
+    // ✅ กรองตามสถานะยังไม่ตรวจสอบ
+if (notInvestigated === 'true') {
+  query += ` AND state != 'finish'`;
+} else {
+  query += ` AND state = 'finish'`;
+}
 
 
+    // 📅 กรองตามวันที่เสร็จสิ้น
+    if (finishedDate) {
+      // biome-ignore lint/style/noUnusedTemplateLiteral: <explanation>
+      query += ` AND DATE(timestamp_finished) = ?`;
+      queryParams.push(finishedDate);
+    }
+
+    // biome-ignore lint/style/noUnusedTemplateLiteral: <explanation>
+    query += ` HAVING distance < ? ORDER BY distance`;
+    queryParams.push(Number(radius));
+
+    const [results] = await pool.query(query, queryParams);
+
+    res.status(200).json(results);
+  } catch (error) {
+    console.error('Error fetching filtered places:', error);
+    res.status(500).json({ error: 'Internal server error', details: error.message });
+  }
+};
+
+ const getAllCategories = async (req, res) => {
+  try {
+    const query = `
+      SELECT id, name 
+      FROM categories 
+      ORDER BY name ASC
+    `;
+    const [categories] = await pool.query(query);
+
+    res.status(200).json(categories);
+  } catch (error) {
+    console.error("Error fetching categories:", error.message);
+    res.status(500).json({
+      error: "Internal server error",
+      details: error.message,
+    });
+  }
+};
 export default {
   getNearbyPlacesByCoordinates,
   saveReview,
-  getUserReviewHistory
+  getUserReviewHistory,
+  searchPlaces,
+  getAllCategories
 };

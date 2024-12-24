@@ -10,4 +10,7 @@ router.post(
     TouristEntityController.saveReview
 );
 router.get('/user/review-history', TouristEntityController.getUserReviewHistory);
+router.get('/places/search', TouristEntityController.searchPlaces);
+// ดึงข้อมูลหมวดหมู่ทั้งหมด
+router.get('/categories', TouristEntityController.getAllCategories); 
 export default router;
