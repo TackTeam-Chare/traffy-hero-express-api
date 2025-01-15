@@ -56,6 +56,7 @@ console.log('__dirname:', __dirname);
 // Serve static files
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
+
 // Middleware to log requests to the root path
 app.use('/', (req, res, next) => {
   console.log(`Path: ${req.path}, Method: ${req.method}, Time: ${new Date().toISOString()}`);

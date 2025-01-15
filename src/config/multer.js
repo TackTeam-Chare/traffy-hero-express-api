@@ -13,7 +13,9 @@ const __dirname = path.dirname(__filename);
 const storage = multer.diskStorage({
   // กำหนดปลายทางที่ใช้เก็บไฟล์ที่อัปโหลด
   destination: (req, file, cb) => {
-    const uploadPath = path.join(__dirname, '../../uploads'); // รวม path ไปยังโฟลเดอร์ปลายทาง
+    const uploadPath = path.join(__dirname, '../../uploads');
+    console.log('🛠️ Upload Path:', uploadPath);
+    // รวม path ไปยังโฟลเดอร์ปลายทาง
     cb(null, uploadPath); // บอก multer ให้ใช้ path นี้ในการเก็บไฟล์
   },
 
