@@ -2,7 +2,8 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import userRoutes from './routes/user/userRoutes.js';
+import userRoutes from './routes/db/apiRoutes.js';
+import traffyRoutes from './routes/traffy/apiRoutes.js';
 // biome-ignore lint/style/useNodejsImportProtocol: <explanation>
 import http from 'http';
 import path from "path";
@@ -65,6 +66,9 @@ app.use('/', (req, res, next) => {
 
 // User Routes
 app.use('/', userRoutes);
+
+// Traffy API Routes
+app.use('/api', traffyRoutes);
 
 // Global Error-Handling Middleware
 app.use((err, req, res, next) => {
